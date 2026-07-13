@@ -1,0 +1,31 @@
+#include <ESP32Servo.h >
+
+#define RELAY_PIN 27      // 繼電器控制                                                    
+#define SERVO_PIN 13     // SG90 訊號腳
+
+Servo doorServo;
+
+void setup() {
+  pinMode(RELAY_PIN, OUTPUT);
+
+  // 關閉繼電器（多數模組 LOW 觸發）
+  digitalWrite(RELAY_PIN, HIGH);
+
+  doorServo.attach(SERVO_PIN);
+  doorServo.write(0);   // 關門角度
+}
+
+void loop() {
+  // ===== 開門 =====
+  digitalWrite(RELAY_PIN, LOW);  // 繼電器導通 → 供電
+  delay(300);                    // 給伺服穩定時間
+  doorServo.write(0);           // 轉 180 度
+  delay(3000);                   // 門保持開 5 秒
+
+  // ===== 關門 =====
+  doorServo.write(90);            // 回 0 度
+  delay(1000);
+  digitalWrite(RELAY_PIN, HIGH); // 繼電器斷電
+
+  delay(3000);
+}
