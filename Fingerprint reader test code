@@ -1,0 +1,29 @@
+#include <Adafruit_Fingerprint.h>
+
+HardwareSerial mySerial(2);   // 使用UART2
+Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
+
+void setup()
+{
+  Serial.begin(115200);
+
+  // ESP32 UART2
+  mySerial.begin(57600, SERIAL_8N1, 16, 17);
+
+  Serial.println("AS608 指紋模組測試");
+
+  finger.begin(57600);
+
+  if (finger.verifyPassword()) {
+    Serial.println("指紋模組連線成功！");
+  } else {
+    Serial.println("找不到指紋模組，請檢查接線！");
+    while (1);
+  }
+}
+
+void loop()
+{
+  Serial.println("模組正常運作中...");
+  delay(2000);
+}
