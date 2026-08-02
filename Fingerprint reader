@@ -1,0 +1,84 @@
+#include <Adafruit_Fingerprint.h>
+#include <HardwareSerial.h>
+
+HardwareSerial mySerial(2);
+
+Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
+
+uint8_t id;
+
+void setup()
+{
+  Serial.begin(115200);
+  mySerial.begin(57600, SERIAL_8N1, 16, 17);
+
+  Serial.println("指紋註冊系統");
+
+  finger.begin(57600);
+
+  if (finger.verifyPassword()) {
+    Serial.println("找到指紋模組");
+  } else {
+    Serial.println("找不到指紋模組");
+    while (1);
+  }
+
+  Serial.println("請輸入要註冊的ID (1~127)");
+}
+
+void loop() {
+
+  if (Serial.available()) {
+
+    id = Serial.parseInt();
+
+    if (id != 0) {
+      Serial.print("註冊 ID #");
+      Serial.println(id);
+      getFingerprintEnroll();
+    }
+  }
+}
+
+uint8_t getFingerprintEnroll() {
+
+  int p = -1;
+
+  Serial.println("請放手指");
+
+  while (p != FINGERPRINT_OK) {
+    p = finger.getImage();
+  }
+
+  p = finger.image2Tz(1);
+  if (p != FINGERPRINT_OK) return p;
+
+  Serial.println("拿開手指");
+  delay(2000);
+
+  p = 0;
+  while (p != FINGERPRINT_NOFINGER) {
+    p = finger.getImage();
+  }
+
+  Serial.println("再放一次");
+
+  while (p != FINGERPRINT_OK) {
+    p = finger.getImage();
+  }
+
+  p = finger.image2Tz(2);
+  if (p != FINGERPRINT_OK) return p;
+
+  p = finger.createModel();
+  if (p != FINGERPRINT_OK) return p;
+
+  p = finger.storeModel(id);
+  if (p == FINGERPRINT_OK) {
+    Serial.println("指紋註冊成功");
+  } else {
+    Serial.println("儲存失敗");
+  }
+
+  return p;
+}
